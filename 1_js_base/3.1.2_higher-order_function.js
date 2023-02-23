@@ -87,3 +87,6 @@ const push = Array.prototype.push.uncurrying();
   push(arguments, 4);
   console.log(arguments);
 })(1, 2, 3);
+
+const max = Math.max.uncurrying();
+console.log(max(arguments, 3, 2, 4));
