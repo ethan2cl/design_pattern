@@ -73,8 +73,11 @@ hr();
 
 /**
  * un-curring，泛化this的过程提取出来
+ *
+ * js中，我们不用关心对象是否被设计拥有某个方法，我们可以让一个对象去借用别的对象的方法，
  */
 Function.prototype.uncurrying = function () {
+  // 保留需要借用的函数
   var self = this;
   return function () {
     var obj = Array.prototype.shift.call(arguments);

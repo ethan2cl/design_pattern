@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>防抖节流</title>
+  </head>
+  <body>
+    <script>
+      /**
+       * 函数节流
+       *
+       * 函数频繁调用的场景：window.onresize, mousemove, 查看上传进度
+       *
+       * 节流：限制了处理函数的频率，按照规定的间隔执行
+       * 防抖：只执行规定时间内的第一个或者最后一个函数
+       */
+
+      const throttle = function (fn, interval, isImmediate) {
+        let timer;
+        return function () {
+          if (isImmediate) {
+            fn.apply(this, arguments);
+            return (isImmediate = false);
+          }
+          if (timer) return;
+          timer = setTimeout(() => {
+            clearTimeout(timer);
+            timer = null; // 回收
+            fn.apply(this, arguments);
+          }, interval);
+        };
+      };
+
+      const debounce = function (fn, interval, isImmediate) {
+        let timer;
+        return function () {
+          if (timer) {
+            clearTimeout(timer);
+          }
+          const callNow = isImmediate && !timer;
+          timer = setTimeout(() => {
+            clearTimeout(timer);
+            timer = null;
+            !isImmediate && fn.apply(this, arguments);
+          }, interval);
+          callNow && fn.apply(this, arguments);
+        };
+      };
+
+      window.onresize = debounce(
+        () => {
+          console.log(111);
+        },
+        500,
+        false
+      );
+    </script>
+  </body>
+</html>
