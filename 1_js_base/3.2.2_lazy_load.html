@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>lazy load function</title>
+  </head>
+  <body>
+    <div
+      style="height: 200px; width: 200px; background-color: aqua"
+      id="sq1"
+    ></div>
+    <div
+      style="height: 200px; width: 200px; background-color: beige"
+      id="sq2"
+    ></div>
+    <script>
+      // 缺点：每次都要执行判断
+      var addEvent = function (ele, type, handler) {
+        if (window.addEventListener) {
+          return ele.addEventListener(type, handler, false);
+        } else if (window.attachEvent) {
+          return ele.attachEvent("on" + type, handler);
+        }
+      };
+
+      // 利用IFFE提前嗅探 缺点：不一定会用到这个判断
+      var addEvent1 = (function () {
+        if (window.addEventListener) {
+          return function (ele, type, handler) {
+            ele.addEventListener(type, handler, false);
+          };
+        } else if (window.attachEvent) {
+          return function (ele, type, handler) {
+            ele.attachEvent(type, handler, false);
+          };
+        }
+      })();
+
+      // 懒加载
+      var addEvent2 = function (ele, type, handler) {
+        console.log("addEvent2");
+        if (window.addEventListener) {
+          addEvent2 = function (ele, type, handler) {
+            ele.addEventListener(type, handler, false);
+          };
+        } else if (window.attachEvent) {
+          addEvent2 = function (ele, type, handler) {
+            ele.attachEvent(type, handler, false);
+          };
+        }
+        addEvent2(ele, type, handler);
+      };
+      addEvent2(document.getElementById("sq1"), "click", () => {
+        console.log(1);
+      });
+      addEvent2(document.getElementById("sq2"), "click", () => {
+        console.log(2);
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>time chunk</title>
+  </head>
+  <body>
+    <script>
+      // 尝试直接添加1k dom节点
+      function addDOM() {
+        const body = document.body;
+        for (let i = 0; i < 100000; i++) {
+          const div = document.createElement("div");
+          div.innerHTML = `dom ${i + 1}`;
+          body.appendChild(div);
+        }
+      }
+      //   addDOM();
+
+      const timeChunk = function (arr, fn, count = 1) {
+        const len = arr.length;
+        let timer,
+          //  记录索引
+          startIndex = 0;
+
+        const start = function () {
+          endIndex = Math.min(count || len) + startIndex;
+          endIndex = endIndex > len ? len : endIndex;
+          while (startIndex < endIndex) {
+            fn(arr[startIndex]);
+            startIndex++;
+          }
+        };
+
+        return function () {
+          timer = setInterval(() => {
+            if (startIndex === len) {
+              return clearInterval(timer);
+            }
+            start();
+          }, 1000);
+        };
+      };
+      const array = Array.from({ length: 100000 })
+        .fill(0)
+        .map((_, i) => i);
+      console.log(array);
+
+      const printOut = timeChunk(
+        array,
+        (item) => {
+          console.log(item);
+          const div = document.createElement("div");
+          div.innerHTML = `dom ${item + 1}`;
+          document.body.appendChild(div);
+        },
+        20
+      );
+      printOut();
+    </script>
+  </body>
+</html>
