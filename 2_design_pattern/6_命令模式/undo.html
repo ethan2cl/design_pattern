@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>undo</title>
+    <style>
+      body {
+        position: absolute;
+      }
+      #ball {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: aquamarine;
+        margin-top: 100px;
+        transition: left 1s;
+        position: relative;
+        left: 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <input name="pos" id="pos" />
+      <button id="move">move</button>
+      <button id="undo">undo</button>
+    </div>
+    <div id="ball" style="left: 0"></div>
+  </body>
+  <script>
+    /**
+     * 通过构建的命令对象，执行封装指令
+     * 调用者不用关心执行者是否和它有同样的借口定义
+     */
+    const ball = document.getElementById("ball");
+    const moveButton = document.getElementById("move");
+    const undoButton = document.getElementById("undo");
+    const setBallStyle = (pos) => (ball.style.left = `${pos}px`);
+    const getPos = () => document.getElementById("pos")?.value || 0;
+
+    const MoveCommand = {
+      execute() {
+        this.oldPos = ball.getClientRects()[0].left;
+        setBallStyle(getPos());
+      },
+      undo() {
+        setBallStyle(this.oldPos);
+      },
+    };
+
+    moveButton.addEventListener("click", () => {
+      MoveCommand.execute();
+    });
+    undoButton.addEventListener("click", () => {
+      MoveCommand.undo();
+    });
+  </script>
+</html>
