@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="image" style="width: 300px; height: 300px">
+      <span></span>
+    </div>
+    <script>
+      /**
+       * 代理模式：为一个对象提供占位符或代用品，以便控制对他的访问
+       *
+       * 保护代理：用于控制不同权限的对象对目标对象的访问，可以过滤一些请求
+       * 虚拟代理：把一些开销很大的对象，延迟到需要的时候加载
+       */
+      const imageBox = document.getElementById("image");
+      const imageBoxSpan = document.getElementById("image").children[0];
+      // 虚拟代理实现图片预加载
+      const myImage = (function () {
+        const imageNode = document.createElement("img");
+        imageNode.style.zIndex = 99;
+        imageNode.style.height = "300px";
+        imageNode.style.width = "300px";
+        imageBox.appendChild(imageNode);
+        return {
+          setSrc(src) {
+            imageNode.src = src;
+          },
+        };
+      })();
+
+      const myImageProxy = (function () {
+        const image = new Image();
+        image.onload = () => {
+          // set real src
+          myImage.setSrc(image.src);
+        };
+
+        return {
+          setSrc(src) {
+            // set temporary src
+            imageBoxSpan.innerText = "loading";
+            setTimeout(() => {
+              image.src = src;
+            }, 3000);
+          },
+        };
+      })();
+
+      myImageProxy.setSrc("/static/test.jpeg");
+    </script>
+
+    <script>
+      console.log("==========计算缓存乘积===========");
+      function mult() {
+        console.log("start calculate");
+        return [...arguments].reduce((prev, curr) => {
+          prev = prev * curr;
+          return prev;
+        }, 1);
+      }
+
+      // 单一职责，将缓存和计算结果分开
+      const multProxy = (function () {
+        const cache = new Map();
+        return function () {
+          const args = [...arguments].toString();
+          if (cache.get(args)) return cache.get(args);
+          const result = mult.apply(this, arguments);
+          cache.set(args, result);
+          return result;
+        };
+      })();
+      console.log(multProxy(1, 2, 3, 4));
+      console.log(multProxy(1, 2, 3, 4));
+    </script>
+  </body>
+</html>
