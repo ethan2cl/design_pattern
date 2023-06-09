@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>解决对象爆炸</title>
+  </head>
+  <body>
+    <script>
+      /**
+       * 防止对象的重复创建浪费资源
+       * 抽离对象中的内部资源和外部资源
+       * 内部资源：共享的不变的量
+       * 外部资源：不可共享的，随着环境改变的量
+       * */
+      const UPLOAD_TYPE = {
+        PLUGIN: "plugin",
+        FLASH: "flash",
+      };
+
+      const Upload = function (fileType) {
+        this.fileType = fileType;
+      };
+
+      Upload.prototype.delete = function (id) {
+        UploadManager.setExternalState(id, this);
+        this.dom.parentNode.removeChild(this.dom);
+      };
+
+      // 定义一个工厂来创建upload对象
+      const UploadFactory = (function () {
+        // 保存创建过的Upload对象
+        const createdFlyWeightObjs = {};
+        return {
+          create(fileType) {
+            return (
+              createdFlyWeightObjs[fileType] ??
+              (createdFlyWeightObjs[fileType] = new Upload(fileType))
+            );
+          },
+        };
+      })();
+
+      // 管理外部状态
+      const UploadManager = (function () {
+        const uploadDatabase = {};
+        return {
+          add(id, uploadType, fileName, fileSize) {
+            const uploadObj = UploadFactory.create(uploadType);
+            // set dom
+            const dom = document.createElement("div");
+            dom.innerHTML = `
+                <span>文件名称: ${fileName}, 大小: ${fileSize}</span>
+                <button id='btn-${id}'>delete</button>
+            `;
+            dom
+              .querySelector(`#btn-${id}`)
+              .addEventListener("click", function () {
+                uploadObj.delete(id);
+              });
+            document.body.appendChild(dom);
+            uploadDatabase[id] = { fileName, fileSize, dom };
+            return uploadObj;
+          },
+          // 给当前操作的upload对象赋值
+          setExternalState(id, uploadObj) {
+            const uploadData = uploadDatabase[id];
+            for (const k in uploadData) {
+              uploadObj[k] = uploadData[k];
+            }
+          },
+        };
+      })();
+
+      let id = 0;
+      window.startUpload = function (uploadType, files) {
+        for (let i = 0, file; (file = files[i++]); ) {
+          const uploadObj = UploadManager.add(
+            ++id,
+            uploadType,
+            file.fileName,
+            file.fileSize
+          );
+        }
+      };
+
+      // 模拟上传
+      const plugins = [
+        { fileName: "1.txt", fileSize: 1000 },
+        { fileName: "2.txt", fileSize: 2000 },
+        { fileName: "3.txt", fileSize: 3000 },
+      ];
+      const flashes = [
+        { fileName: "4.txt", fileSize: 1000 },
+        { fileName: "5.txt", fileSize: 2000 },
+        { fileName: "6.txt", fileSize: 3000 },
+      ];
+
+      startUpload(UPLOAD_TYPE.PLUGIN, plugins);
+      startUpload(UPLOAD_TYPE.FLASH, flashes);
+    </script>
+  </body>
+</html>
